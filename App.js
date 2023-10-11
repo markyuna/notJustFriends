@@ -1,25 +1,21 @@
-import { StatusBar } from 'expo-status-bar';
-import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
-
-import FeedPost from './src/components/FeedPost';
-import CreatePostScreen from './src/screens/CreatePostScreen';
-import FeedScreen from './src/screens/FeedScreen';
+import { StatusBar } from "expo-status-bar";
+import { StyleSheet } from "react-native";
+import Navigator from "./src/navigation";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <StatusBar style="auto" />
-      <CreatePostScreen />
+    <SafeAreaProvider style={styles.container}>
+      <Navigator />
 
-    </View>
+      <StatusBar style="auto" />
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'lightgray',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#c9c9c9",
   },
 });
