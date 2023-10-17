@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,14 +11,47 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
+import { v4 as uuidv4 } from "uuid";
+// import { User } from "../models";
+import { S3Image } from "aws-amplify-react-native/dist/Storage";
+import { API, graphqlOperation, Auth, DataStore, Storage } from "aws-amplify";
+import { useNavigation } from "@react-navigation/native";
 
 const dummy_img =
   "https://notjustdev-dummy.s3.us-east-2.amazonaws.com/avatars/user.png";
+
+const createUser = `
+  mutation CreateUser($input: CreateUserInput!) {
+    createUser(input: $input) {
+      id
+      createdAt
+      updatedAt
+      name
+      image
+      _version
+      _lastChangedAt
+      _deleted
+    }
+  }
+`;
 
 const UpdateProfileScreen = () => {
   const [name, setName] = useState("");
   const [image, setImage] = useState(null);
   const insets = useSafeAreaInsets();
+  const [user, setUser] = useState(null);
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userData = await Auth.currentAuthenticatedUser();
+      const dbUser = await DataStore.query(User, userData.attributes.sub);
+      setUser(dbUser);
+      setName(dbUser.name);
+    };
+
+    fetchUser();
+  }, []);
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -33,9 +66,65 @@ const UpdateProfileScreen = () => {
     }
   };
 
-  const onSave = async () => {
-    console.warn("Saving the user profile");
+  const uploadFile = async (fileUri) => {
+    try {
+      const response = await fetch(fileUri);
+      const blob = await response.blob();
+      const key = `${uuidv4()}.png`;
+      await Storage.put(key, blob, {
+        contentType: "image/png",
+      });
+      return key;
+    } catch (err) {
+      console.log("Error uploading file:", err);
+    }
   };
+
+  const onCreate = async () => {
+    const userData = await Auth.currentAuthenticatedUser();
+    const newUser = {
+      id: userData.attributes.sub,
+      name,
+      _version: 1,
+    };
+
+    if (image) {
+      newUser.image = await uploadFile(image);
+    }
+
+    await API.graphql(graphqlOperation(createUser, { input: newUser }));
+  };
+
+  const onUpdate = async () => {
+    let imageKey;
+    if (image) {
+      imageKey = await uploadFile(image);
+    }
+    await DataStore.save(
+      User.copyOf(user, (updated) => {
+        updated.name = name;
+        if (imageKey) {
+          updated.image = imageKey;
+        }
+      })
+    );
+  };
+
+  const onSave = async () => {
+    if (user) {
+      await onUpdate();
+    } else {
+      await onCreate();
+    }
+    navigation.navigate("Feed");
+  };
+
+  let renderImage = <Image source={{ uri: dummy_img }} style={styles.image} />;
+  if (image) {
+    renderImage = <Image source={{ uri: image }} style={styles.image} />;
+  } else if (user?.image) {
+    renderImage = <S3Image imgKey={user.image} style={styles.image} />;
+  }
 
   return (
     <KeyboardAvoidingView
@@ -45,7 +134,7 @@ const UpdateProfileScreen = () => {
       keyboardVerticalOffset={150}
     >
       <Pressable onPress={pickImage} style={styles.imagePickerContainer}>
-        <Image source={{ uri: image || dummy_img }} style={styles.image} />
+        {renderImage}
         <Text>Change photo</Text>
       </Pressable>
 

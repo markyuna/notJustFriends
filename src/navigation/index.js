@@ -1,7 +1,7 @@
 import FeedScreen from "../screens/FeedScreen";
 import CreatePostScreen from "../screens/CreatePostScreen";
 import ProfileScreen from "../screens/ProfileScreen";
-import UpdateProfileScreen from "../screens/UpdateProfileScreen";
+// import UpdateProfileScreen from "../screens/UpdateProfileScreen";
 
 import { NavigationContainer } from "@react-navigation/native";
 
@@ -30,7 +30,7 @@ const Navigator = () => {
         />
         <Stack.Screen name="Create Post" component={CreatePostScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
-        <Stack.Screen name="Update Profile" component={UpdateProfileScreen} />
+        {/* <Stack.Screen name="Update Profile" component={UpdateProfileScreen} /> */}
       </Stack.Navigator>
     </NavigationContainer>
   );
