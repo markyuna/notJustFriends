@@ -10,6 +10,11 @@
       "StackName": "amplify-notjustfriends-staging-154336",
       "StackId": "arn:aws:cloudformation:us-east-1:323833978906:stack/amplify-notjustfriends-staging-154336/efa8a340-6d03-11ee-82b8-0a014247e82f",
       "AmplifyAppId": "dayxzszq810ar"
+    },
+    "categories": {
+      "auth": {
+        "notJustFriends": {}
+      }
     }
   }
 }
