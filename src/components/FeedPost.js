@@ -1,28 +1,49 @@
-import { StyleSheet, Text, View, Image, Pressable } from "react-native";
-import LikeImage from "../../assets/images/like.png";
+import { StyleSheet, Text, Image, View, Pressable } from "react-native";
 import {
   Entypo,
   AntDesign,
   FontAwesome5,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
+import LikeImage from "../../assets/images/like.png";
+// import { S3Image } from "aws-amplify-react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 
-const FeedPost = ({ post }) => {
-  const [isLiked, setIsLiked] = useState(false);
+// import { DataStore } from "aws-amplify";
+// import { User } from "../models";
 
+// const dummy_img =
+//   "https://notjustdev-dummy.s3.us-east-2.amazonaws.com/avatars/user.png";
+
+/* Post component */
+const FeedPost = ({ post }) =>{
+  const [isLiked, setIsLiked] = useState(false);
+  // const [user, setUser] = useState(null);
   const navigation = useNavigation();
+
+  // useEffect(() => {
+  //   if (!post.postUserId) {
+  //     return;
+  //   }
+  //   DataStore.query(User, post.postUserId).then(setUser);
+  // }, [post.postUserId]);
+
   return (
     <Pressable style={styles.post}>
-      {/* Header */}
+      {/* Post Header with details about the author */}
       <Pressable
         style={styles.header}
-        onPress={() => navigation.navigate("Profile", { id: post.User.id })}
+        onPress={() => navigation.navigate("Profile", { id: post.postUserId })}
       >
-        <Image source={{ uri: post.User.image }} style={styles.profileImage} />
+      <Image source={{ uri: post.User?.image || dummy_img }} style={styles.profileImage} />
+        {/* {user?.image ? (
+          <S3Image imgKey={user.image} style={styles.profileImage} />
+        ) : (
+          <Image source={{ uri: dummy_img }} style={styles.profileImage} />
+        )} */}
         <View>
-          <Text style={styles.name}>{post.User.name}</Text>
+          <Text style={styles.name}>{post.User?.name}</Text>
           <Text style={styles.subtitle}>{post.createdAt}</Text>
         </View>
         <Entypo
@@ -33,18 +54,14 @@ const FeedPost = ({ post }) => {
         />
       </Pressable>
 
-      {/* Body */}
-      {post.description && (
-        <Text style={styles.description}>{post.description}</Text>
-      )}
-
+      {/* Post body with description and image */}
+      <Text style={styles.description}>{post.description}</Text>
       {post.image && (
-        <Image source={{ uri: post.image }} style={styles.image} />
+        <S3Image imgKey={post.image} style={styles.image} resizeMode="cover" />
       )}
 
-      {/* Footer */}
+      {/* Post footer with likes and button */}
       <View style={styles.footer}>
-        {/* Stats row */}
         <View style={styles.statsRow}>
           <Image source={LikeImage} style={styles.likeIcon} />
           <Text style={styles.likedBy}>
@@ -52,7 +69,6 @@ const FeedPost = ({ post }) => {
           </Text>
           <Text style={styles.shares}>{post.numberOfShares} shares</Text>
         </View>
-        {/* Buttons Row  */}
         <View style={styles.buttonsRow}>
           <Pressable
             onPress={() => setIsLiked(!isLiked)}
@@ -72,12 +88,10 @@ const FeedPost = ({ post }) => {
               Like
             </Text>
           </Pressable>
-
           <View style={styles.iconButton}>
-            <FontAwesome5 name="comment-alt" size={18} color="gray" />
+            <FontAwesome5 name="comment-alt" size={16} color="gray" />
             <Text style={styles.iconButtonText}>Comment</Text>
           </View>
-
           <View style={styles.iconButton}>
             <MaterialCommunityIcons
               name="share-outline"
@@ -90,19 +104,18 @@ const FeedPost = ({ post }) => {
       </View>
     </Pressable>
   );
-};
+}
 
 const styles = StyleSheet.create({
   post: {
-    marginVertical: 5,
     backgroundColor: "#fff",
+    marginVertical: 5,
   },
-  // Header
   header: {
-    width: "100%",
+    padding: 10,
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
+    width: "100%",
   },
   profileImage: {
     width: 40,
@@ -119,27 +132,21 @@ const styles = StyleSheet.create({
   icon: {
     marginLeft: "auto",
   },
-
-  // Body
   description: {
-    paddingHorizontal: 10,
     lineHeight: 20,
-    letterSpacing: 0.3,
+    padding: 10,
   },
   image: {
     width: "100%",
     aspectRatio: 1,
-    marginTop: 10,
   },
-
-  // Footer
   footer: {
     paddingHorizontal: 10,
   },
   statsRow: {
-    paddingVertical: 10,
     flexDirection: "row",
     borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 10,
     borderColor: "lightgray",
   },
   likeIcon: {
@@ -151,11 +158,9 @@ const styles = StyleSheet.create({
     color: "gray",
   },
   shares: {
-    marginLeft: "auto",
     color: "gray",
+    marginLeft: "auto",
   },
-
-  // Buttons row
   buttonsRow: {
     marginVertical: 10,
     flexDirection: "row",
@@ -166,8 +171,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   iconButtonText: {
-    marginLeft: 5,
     color: "gray",
+    marginLeft: 5,
     fontWeight: "500",
   },
 });

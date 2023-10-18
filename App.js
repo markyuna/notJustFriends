@@ -9,23 +9,21 @@ import { withAuthenticator } from "aws-amplify-react-native";
 // import UserContextProvider from "./src/contexts/UserContext";
 
 Amplify.configure({ ...awsconfig, Analytics: { disabled: true } });
-
-
+// DataStore.clear();
 
 function App() {
+  // const [authUser, setAuthUser] = useState(null);
 
-  const [authUser, setAuthUser] = useState(null);
+  // useEffect(() => {
+  //   Auth.currentAuthenticatedUser().then(setAuthUser);
+  // }, []);
 
-  useEffect(() => {
-    Auth.currentAuthenticatedUser().then(setAuthUser);
-  }, []);
-
-  console.log(authUser);
+  // console.log(authUser);
 
   return (
     <SafeAreaProvider style={styles.container}>
       <Navigator />
-
+      
       <StatusBar style="auto" />
     </SafeAreaProvider>
   );

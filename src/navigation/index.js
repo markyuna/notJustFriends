@@ -1,9 +1,8 @@
+import { NavigationContainer } from "@react-navigation/native";
 import FeedScreen from "../screens/FeedScreen";
 import CreatePostScreen from "../screens/CreatePostScreen";
+import UpdateProfileScreen from "../screens/UpdateProfileScreen";
 import ProfileScreen from "../screens/ProfileScreen";
-// import UpdateProfileScreen from "../screens/UpdateProfileScreen";
-
-import { NavigationContainer } from "@react-navigation/native";
 
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { FontAwesome } from "@expo/vector-icons";
@@ -30,7 +29,7 @@ const Navigator = () => {
         />
         <Stack.Screen name="Create Post" component={CreatePostScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
-        {/* <Stack.Screen name="Update Profile" component={UpdateProfileScreen} /> */}
+        <Stack.Screen name="Update Profile" component={UpdateProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
