@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,9 +7,7 @@ import {
   Dimensions,
   FlatList,
   Pressable,
-  Alert,
 } from "react-native";
-import { S3Image } from "aws-amplify-react-native/dist/Storage";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import FeedPost from "../components/FeedPost";
 import {
@@ -20,8 +17,7 @@ import {
   Ionicons,
   Entypo,
 } from "@expo/vector-icons";
-import { Auth, DataStore } from "aws-amplify";
-import { User, Post } from "../models";
+import user from "../../assets/data/user.json";
 
 const dummy_img =
   "https://notjustdev-dummy.s3.us-east-2.amazonaws.com/avatars/user.png";
@@ -33,8 +29,7 @@ const ProfileScreenHeader = ({ user, isMe = false }) => {
   const navigation = useNavigation();
 
   const signOut = async () => {
-    await Auth.signOut();
-    await DataStore.clear();
+    console.warn("Sign out");
   };
 
   if (!user) {
@@ -44,36 +39,36 @@ const ProfileScreenHeader = ({ user, isMe = false }) => {
   return (
     <View style={styles.container}>
       <Image source={{ uri: bg }} style={styles.bg} />
-      {user?.image ? (
-        <S3Image imgKey={user.image} style={styles.image} />
-      ) : (
-        <Image source={{ uri: dummy_img }} style={styles.image} />
-      )}
+      <Image source={{ uri: user?.image || dummy_img }} style={styles.image} />
 
       <Text style={styles.name}>{user.name}</Text>
 
       {isMe && (
-        <View style={styles.buttonsContainer}>
-          <Pressable style={[styles.button, { backgroundColor: "royalblue" }]}>
-            <AntDesign name="pluscircle" size={16} color="white" />
-            <Text style={[styles.buttonText, { color: "white" }]}>
-              Add to Story
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => navigation.navigate("Update Profile")}
-            style={styles.button}
-          >
-            <MaterialCommunityIcons name="pencil" size={16} color="black" />
-            <Text style={styles.buttonText}>Edit Profile</Text>
-          </Pressable>
-          <Pressable
-            onPress={signOut}
-            style={[styles.button, { flex: 0, width: 50 }]}
-          >
-            <MaterialIcons name="logout" size={16} color="black" />
-          </Pressable>
-        </View>
+        <>
+          <View style={styles.buttonsContainer}>
+            <Pressable
+              style={[styles.button, { backgroundColor: "royalblue" }]}
+            >
+              <AntDesign name="pluscircle" size={16} color="white" />
+              <Text style={[styles.buttonText, { color: "white" }]}>
+                Add to Story
+              </Text>
+            </Pressable>
+            <Pressable
+              style={styles.button}
+              onPress={() => navigation.navigate("Update Profile")}
+            >
+              <MaterialCommunityIcons name="pencil" size={16} color="black" />
+              <Text style={styles.buttonText}>Edit Profile</Text>
+            </Pressable>
+            <Pressable
+              onPress={signOut}
+              style={[styles.button, { flex: 0, width: 50 }]}
+            >
+              <MaterialIcons name="logout" size={16} color="black" />
+            </Pressable>
+          </View>
+        </>
       )}
 
       <View style={styles.textLine}>
@@ -105,96 +100,13 @@ const ProfileScreenHeader = ({ user, isMe = false }) => {
 };
 
 const ProfileScreen = () => {
-  const [user, setUser] = useState(null);
-  const [posts, setPosts] = useState([]);
-
-  const navigation = useNavigation();
   const route = useRoute();
-  // const [isMe, setIsMe] = useState(false);
-  
-  useEffect(() => {
-    const fetchUser = async () => {
-      const userData = await Auth.currentAuthenticatedUser();
-      const userId = route?.params?.id || userData.attributes.sub;
-      
-      if (!userId) {
-        return;
-      }
 
-      const isMe = userId === userData.attributes.sub;
+  console.warn("User: ", route?.params?.id);
 
-      const dbUser = await DataStore.query(User, userId);
-      console.log(dbUser )
-
-      if (!dbUser) {
-        if (isMe) {
-          navigation.navigate("Update Profile");
-        } else {
-          Alert.alert("User not found");
-        }
-      } else {
-        setUser(dbUser);
-      }
-
-      // query posts
-      DataStore.query(Post, (p) => p.postUserId("eq", userId)).then(setPosts);
-    }
-
-    fetchUser();
-  }, []);
-
-
-    // return (
-    //   <View style={styles.container}>
-    //     <Image style={styles.bg} source={{ uri: bg }} />
-    //     <Image
-    //       style={styles.image}
-    //       source={{ uri: user?.image || dummy_img }}
-    //     />
-    //     <Text style={styles.name}>{user?.name}</Text>
-    //     <View style={styles.buttonsContainer}>
-    //       <Pressable style={styles.button}>
-    //         <AntDesign name="plus" size={24} color="black" />
-    //         <Text style={styles.buttonText}>Follow</Text>
-    //       </Pressable>
-    //       <Pressable style={styles.button}>
-    //         <MaterialCommunityIcons
-    //           name="dots-horizontal"
-    //           size={24}
-    //           color="black"
-    //         />
-    //       </Pressable>
-    //     </View>
-
-    //     <View style={styles.textLine}>
-    //       <MaterialIcons name="location-on" size={24} color="black" />
-    //       <Text>{user?.location || "Unknown location"}</Text>
-    //     </View>
-    //     <View style={styles.textLine}>
-    //       <Ionicons name="school" size={24} color="black" />
-    //       <Text>{user?.university || "Unknown university"}</Text>
-    //     </View>
-    //     <View style={styles.textLine}>
-    //       <Entypo name="graduation-cap" size={24} color="black" />
-    //       <Text>{user?.major || "Unknown major"}</Text>
-    //     </View>
-    //     <FlatList
-    //       data={user.posts}
-    //       renderItem={({ item }) => <FeedPost post={item} />}
-    //       showsVerticalScrollIndicator={false}
-    //       ListHeaderComponent={() => (
-    //         <>
-    //           <ProfileScreenHeader user={user} isMe={true} />
-    //           <Text style={styles.sectionTitle}>Posts</Text>
-    //         </>
-    //       )}
-    //     />
-    //   </View>
-    // );
-
-    return (
-      <FlatList
-      data={posts}
+  return (
+    <FlatList
+      data={user.posts}
       renderItem={({ item }) => <FeedPost post={item} />}
       showsVerticalScrollIndicator={false}
       ListHeaderComponent={() => (

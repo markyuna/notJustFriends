@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -11,52 +11,14 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
-import { API, graphqlOperation, Auth, DataStore, Storage } from "aws-amplify";
-
-import { User } from "../models";
-import { useNavigation } from "@react-navigation/native";
-
-// import { v4 as uuidv4 } from "uuid";
-// import { S3Image } from "aws-amplify-react-native/dist/Storage";
 
 const dummy_img =
   "https://notjustdev-dummy.s3.us-east-2.amazonaws.com/avatars/user.png";
 
-const createUser = `
-  mutation CreateUser($input: CreateUserInput!) {
-    createUser(input: $input) {
-      id
-      createdAt
-      updatedAt
-      name
-      image
-      _version
-      _lastChangedAt
-      _deleted
-    }
-  }
-`;
-
 const UpdateProfileScreen = () => {
   const [name, setName] = useState("");
   const [image, setImage] = useState(null);
-
-  const [user, setUser] = useState(null);
-
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const userData = await Auth.currentAuthenticatedUser();
-
-      const dbUser = await DataStore.query(User, userData.attributes.sub);
-      setUser(dbUser);
-      setName(dbUser.name);
-    };
-
-    fetchUser();
-  }, []);
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -66,40 +28,14 @@ const UpdateProfileScreen = () => {
       quality: 1,
     });
 
-    if (!result.canceled) {
+    if (!result.cancelled) {
       setImage(result.uri);
     }
   };
 
   const onSave = async () => {
-    if (user) {
-      await updateUser();
-    } else {
-      await createUser();
-    }
-    navigation.goBack();
+    console.warn("Saving the user profile");
   };
-
-  const updateUser = async () => {
-    await DataStore.save(
-      User.copyOf(user, (update) => {
-        update.name = name;
-    }));
-  }
-  
-  const createUser = async () => {
-    const userData = await Auth.currentAuthenticatedUser();
-    
-    const newUser = {
-      id: userData.attributes.sub,
-      name,
-      _version: 1,
-    };
-    
-    await API.graphql(graphqlOperation(createUser, { input: newUser }));
-
-  };
-
 
   return (
     <KeyboardAvoidingView
@@ -109,11 +45,8 @@ const UpdateProfileScreen = () => {
       keyboardVerticalOffset={150}
     >
       <Pressable onPress={pickImage} style={styles.imagePickerContainer}>
-        <Image 
-          source={{ uri: image || user?.image || dummy_img}} 
-          style={styles.image} 
-        />
-        <Text>Change profile picture</Text>
+        <Image source={{ uri: image || dummy_img }} style={styles.image} />
+        <Text>Change photo</Text>
       </Pressable>
 
       <TextInput

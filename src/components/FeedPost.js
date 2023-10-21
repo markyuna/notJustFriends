@@ -6,15 +6,15 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import LikeImage from "../../assets/images/like.png";
-// import { S3Image } from "aws-amplify-react-native";
+import { S3Image } from "aws-amplify-react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 
-// import { DataStore } from "aws-amplify";
-// import { User } from "../models";
+import { DataStore } from "aws-amplify";
+import { User } from "../models";
 
-// const dummy_img =
-//   "https://notjustdev-dummy.s3.us-east-2.amazonaws.com/avatars/user.png";
+const dummy_img =
+  "https://notjustdev-dummy.s3.us-east-2.amazonaws.com/avatars/user.png";
 
 /* Post component */
 const FeedPost = ({ post }) =>{
@@ -22,12 +22,12 @@ const FeedPost = ({ post }) =>{
   // const [user, setUser] = useState(null);
   const navigation = useNavigation();
 
-  // useEffect(() => {
-  //   if (!post.postUserId) {
-  //     return;
-  //   }
-  //   DataStore.query(User, post.postUserId).then(setUser);
-  // }, [post.postUserId]);
+  useEffect(() => {
+    if (!post.postUserId) {
+      return;
+    }
+    DataStore.query(User, post.postUserId).then(setUser);
+  }, [post.postUserId]);
 
   return (
     <Pressable style={styles.post}>
@@ -57,7 +57,7 @@ const FeedPost = ({ post }) =>{
       {/* Post body with description and image */}
       <Text style={styles.description}>{post.description}</Text>
       {post.image && (
-        <S3Image imgKey={post.image} style={styles.image} resizeMode="cover" />
+        <Image source={{ uri: post.image }} style={styles.image} resizeMode="cover" />
       )}
 
       {/* Post footer with likes and button */}
@@ -69,6 +69,7 @@ const FeedPost = ({ post }) =>{
           </Text>
           <Text style={styles.shares}>{post.numberOfShares} shares</Text>
         </View>
+
         <View style={styles.buttonsRow}>
           <Pressable
             onPress={() => setIsLiked(!isLiked)}
@@ -92,6 +93,7 @@ const FeedPost = ({ post }) =>{
             <FontAwesome5 name="comment-alt" size={16} color="gray" />
             <Text style={styles.iconButtonText}>Comment</Text>
           </View>
+          
           <View style={styles.iconButton}>
             <MaterialCommunityIcons
               name="share-outline"

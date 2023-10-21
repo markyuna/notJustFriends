@@ -1,8 +1,9 @@
-import { NavigationContainer } from "@react-navigation/native";
 import FeedScreen from "../screens/FeedScreen";
 import CreatePostScreen from "../screens/CreatePostScreen";
-import UpdateProfileScreen from "../screens/UpdateProfileScreen";
 import ProfileScreen from "../screens/ProfileScreen";
+import UpdateProfileScreen from "../screens/UpdateProfileScreen";
+
+import { NavigationContainer } from "@react-navigation/native";
 
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { FontAwesome } from "@expo/vector-icons";
