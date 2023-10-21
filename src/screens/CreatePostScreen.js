@@ -1,17 +1,22 @@
+import React, { useState, useEffect } from "react";
 import {
+  View,
   Text,
   StyleSheet,
-  View,
-  Image,
   TextInput,
+  Image,
   Button,
   KeyboardAvoidingView,
+  Platform,
 } from "react-native";
-import { useState } from "react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Entypo } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { DataStore, Auth, Storage } from "aws-amplify";
+import { Post } from "../models";
 import { useNavigation } from "@react-navigation/native";
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from "uuid";
 
 const user = {
   id: "u1",
@@ -23,16 +28,31 @@ const user = {
 const CreatePostScreen = () => {
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
-
   const navigation = useNavigation();
-
   const insets = useSafeAreaInsets();
 
-  const onSubmit = () => {
-    console.warn("On submit", description);
-    setDescription("");
+  const onSubmit = async () => {
+    try {
+      const userData = await Auth.currentAuthenticatedUser();
+      const newPost = {
+        description,
+        numberOfLikes: 0,
+        numberOfShares: 0,
+        postUserId: userData.attributes.sub,
+      };
 
-    navigation.goBack();
+      if (image) {
+        newPost.image = await uploadFile(image);
+      }
+
+      await DataStore.save(new Post(newPost));
+      setDescription("");
+      setImage(null);
+      navigation.goBack();
+    } catch (error) {
+      console.error("Error al guardar la publicación:", error);
+      // Puedes mostrar un mensaje de error al usuario aquí
+    }
   };
 
   const pickImage = async () => {
@@ -43,10 +63,23 @@ const CreatePostScreen = () => {
       quality: 1,
     });
 
-    console.log(result);
-
-    if (!result.cancelled) {
+    if (!result.canceled) {
       setImage(result.uri);
+    }
+  };
+
+  const uploadFile = async (fileUri) => {
+    try {
+      const response = await fetch(fileUri);
+      const blob = await response.blob();
+      const key = `${uuidv4()}.png`;
+      await Storage.put(key, blob, {
+        contentType: "image/png",
+      });
+      return key;
+    } catch (error) {
+      console.error("Error al cargar el archivo:", error);
+      throw error;
     }
   };
 
@@ -79,8 +112,16 @@ const CreatePostScreen = () => {
       {image && <Image source={{ uri: image }} style={styles.image} />}
 
       <View style={styles.buttonContainer}>
-        <Button title="Post" onPress={onSubmit} />
+        <Button onPress={onSubmit} title="Publicar" />
+        {/* <Button onPress={onSubmit} title="Publicar" disabled={!description} /> */}
       </View>
+      <Entypo
+        onPress={pickImage}
+        name="images"
+        size={24}
+        color="limegreen"
+        style={styles.icon}
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -88,34 +129,27 @@ const CreatePostScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "white",
+    width: "100%",
     padding: 10,
-    backgroundColor: "#fff",
   },
   header: {
+    padding: 10,
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
-    marginBottom: 10,
   },
-  profileImage: {
-    height: 40,
-    width: 40,
-    borderRadius: 30,
-    marginRight: 10,
-  },
-  image: {
-    width: "50%",
-    aspectRatio: 4 / 3,
-    alignSelf: "center",
-  },
-  name: {
-    fontWeight: "500",
-  },
+  input: {},
   buttonContainer: {
     marginTop: "auto",
+    marginVertical: 10,
   },
   icon: {
     marginLeft: "auto",
+  },
+  image: {
+    width: "100%",
+    aspectRatio: 4 / 3,
   },
 });
 
